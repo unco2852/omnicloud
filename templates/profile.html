@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Profilim | OmniCloud{% endblock %}
+
+{% block content %}
+<div class="profile-container" style="position: relative; z-index: 20; min-height: 75vh; padding-top: 2rem; padding-bottom: 3rem;">
+    <div class="profile-card">
+        <!-- Profil Başlık & Avatar -->
+        <div class="profile-header-block">
+            <div class="profile-avatar-large">
+                <i class="fa-solid fa-user-astronaut"></i>
+            </div>
+            <div class="profile-title-text">
+                <h2>{{ current_user.username }}</h2>
+                <span class="user-plan-pill">{{ current_user.membership_plan }} Planı</span>
+            </div>
+        </div>
+
+        <hr class="profile-divider">
+
+        <!-- Detay Bilgi Grid'i -->
+        <div class="profile-details-grid">
+            <div class="detail-box">
+                <span class="detail-label"><i class="fa-regular fa-envelope"></i> E-Posta</span>
+                <span class="detail-value">{{ current_user.email }}</span>
+            </div>
+
+            <div class="detail-box">
+                <span class="detail-label"><i class="fa-solid fa-phone"></i> Telefon Numarası</span>
+                <span class="detail-value">{{ current_user.phone if current_user.phone else 'Belirtilmedi' }}</span>
+            </div>
+
+            <div class="detail-box">
+                <span class="detail-label"><i class="fa-regular fa-calendar-check"></i> Kayıt Tarihi</span>
+                <span class="detail-value">
+                    {% if current_user.created_at and current_user.created_at.strftime %}
+                        {{ current_user.created_at.strftime('%d.%m.%Y %H:%M') }}
+                    {% else %}
+                        Bilinmiyor
+                    {% endif %}
+                </span>
+            </div>
+
+            <div class="detail-box">
+                <span class="detail-label"><i class="fa-solid fa-shield-halved"></i> Hesap Durumu</span>
+                <span class="detail-value status-active">
+                    <i class="fa-solid fa-circle" style="font-size: 8px;"></i> Aktif &amp; Doğrulanmış
+                </span>
+            </div>
+        </div>
+
+        <!-- Hızlı İşlem Butonları -->
+        <div class="profile-actions">
+            <a href="{{ url_for('my_app') }}" class="btn-launch" style="text-decoration: none; padding: 0.9rem 1.5rem; font-size: 1rem; width: auto;">
+                <i class="fa-solid fa-desktop"></i> Sanal İş İstasyonunu Aç
+            </a>
+            <a href="{{ url_for('plans') }}" class="btn-plan-select" style="text-decoration: none; padding: 0.9rem 1.5rem; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                <i class="fa-solid fa-arrow-up-right-dots"></i> Planı Yükselt
+            </a>
+            <a href="{{ url_for('logout') }}" class="btn-profile-logout">
+                <i class="fa-solid fa-right-from-bracket"></i> Oturumu Kapat
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

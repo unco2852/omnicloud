@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block title %}Güvenli Ödeme Simülasyonu | OmniCloud{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper" style="position: relative; z-index: 30; display: flex; justify-content: center; align-items: center; min-height: 80vh; padding: 2.5rem 1rem;">
+    <div class="auth-card" style="position: relative; z-index: 40; width: 100%; max-width: 480px; background: rgba(18, 22, 34, 0.95); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 2rem; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6); backdrop-filter: blur(10px);">
+        
+        <div class="auth-header" style="text-align: center; margin-bottom: 1.5rem;">
+            <div class="auth-logo-icon" style="font-size: 2.2rem; color: #a855f7; margin-bottom: 0.5rem;">
+                <i class="fa-solid fa-credit-card"></i>
+            </div>
+            <h2 style="color: #fff; font-size: 1.6rem; margin-bottom: 0.3rem;">Güvenli Ödeme Adımı</h2>
+            <p style="color: #94a3b8; font-size: 0.95rem;">Seçilen Paket: <strong style="color: #a855f7;">{{ plan }}</strong></p>
+            <div style="font-size: 1.8rem; font-weight: 700; color: #fff; margin-top: 0.5rem;">
+                ₺{{ tutar }} <span style="font-size: 0.9rem; color: #94a3b8; font-weight: normal;">/ ay</span>
+            </div>
+        </div>
+
+        <form id="paymentForm" method="POST" action="{{ url_for('checkout', plan=plan) }}" class="auth-form" style="display: flex; flex-direction: column; gap: 1.2rem;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}"/>
+
+            <!-- Kart Sahibi -->
+            <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
+                <label for="card_name" style="color: #cbd5e1; font-size: 0.85rem; font-weight: 500;">Kart Üzerindeki İsim</label>
+                <div class="input-with-icon" style="position: relative;">
+                    <i class="fa-regular fa-user" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #64748b;"></i>
+                    <input type="text" id="card_name" name="card_name" required autocomplete="off" style="width: 100%; box-sizing: border-box; padding: 0.8rem 1rem 0.8rem 2.5rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff; outline: none;">
+                </div>
+            </div>
+
+            <!-- Kart Numarası -->
+            <div class="form-group" style="display: flex; flex-direction: column; gap: 0.4rem;">
+                <label for="card_number" style="color: #cbd5e1; font-size: 0.85rem; font-weight: 500;">Kart Numarası</label>
+                <div class="input-with-icon" style="position: relative;">
+                    <i class="fa-regular fa-credit-card" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #64748b;"></i>
+                    <input type="text" id="card_number" name="card_number" maxlength="19" required autocomplete="off" style="width: 100%; box-sizing: border-box; padding: 0.8rem 1rem 0.8rem 2.5rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff; outline: none;">
+                </div>
+            </div>
+
+            <!-- SKT ve CVV -->
+            <div style="display: flex; gap: 1rem;">
+                <div class="form-group" style="flex: 1; display: flex; flex-direction: column; gap: 0.4rem;">
+                    <label for="expiry" style="color: #cbd5e1; font-size: 0.85rem; font-weight: 500;">Son Kullanma (AA/YY)</label>
+                    <input type="text" id="expiry" name="expiry" maxlength="5" required autocomplete="off" style="width: 100%; box-sizing: border-box; padding: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff; text-align: center; outline: none;">
+                </div>
+                <div class="form-group" style="flex: 1; display: flex; flex-direction: column; gap: 0.4rem;">
+                    <label for="cvv" style="color: #cbd5e1; font-size: 0.85rem; font-weight: 500;">CVV / CVC</label>
+                    <input type="text" id="cvv" name="cvv" maxlength="3" required autocomplete="off" style="width: 100%; box-sizing: border-box; padding: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: #fff; text-align: center; outline: none;">
+                </div>
+            </div>
+
+            <!-- Hata / Uyarı Bildirim Kutusu -->
+            <div id="cardError" style="display: none; background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #fca5a5; padding: 0.6rem; border-radius: 8px; font-size: 0.85rem; text-align: center;"></div>
+
+            <!-- Güvenlik Rozeti -->
+            <div style="margin: 0.2rem 0; font-size: 0.85rem; color: #94a3b8; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <i class="fa-solid fa-lock" style="color: #10b981;"></i> 256-Bit SSL Uçtan Uca Güvenli Simülasyon
+            </div>
+
+            <!-- Ödeme Butonu -->
+            <button type="submit" name="action" value="pay" class="btn-auth-submit" style="width: 100%; padding: 0.9rem; background: linear-gradient(135deg, #10b981, #059669); border: none; border-radius: 8px; color: #fff; font-size: 1rem; font-weight: 600; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 0.5rem;">
+                <i class="fa-solid fa-shield-check"></i>
+                <span>₺{{ tutar }} Ödemeyi Tamamla ve Başlat</span>
+            </button>
+
+            <!-- İptal Butonu -->
+            <button type="submit" name="action" value="cancel" formnovalidate class="btn-auth-submit" style="width: 100%; padding: 0.8rem; background: transparent; border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 8px; color: #ef4444; font-size: 0.95rem; font-weight: 500; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 0.5rem;">
+                <i class="fa-solid fa-xmark"></i>
+                <span>İptal Et ve Geri Dön</span>
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const nameInput = document.getElementById("card_name");
+    const numInput = document.getElementById("card_number");
+    const expInput = document.getElementById("expiry");
+    const cvvInput = document.getElementById("cvv");
+    const errorBox = document.getElementById("cardError");
+    const form = document.getElementById("paymentForm");
+
+    function showError(msg) {
+        errorBox.textContent = msg;
+        errorBox.style.display = "block";
+    }
+
+    function clearError() {
+        errorBox.textContent = "";
+        errorBox.style.display = "none";
+    }
+
+    // 1. İsim: Her kelimenin ilk harfi otomatik büyük
+    nameInput.addEventListener("input", () => {
+        clearError();
+        const words = nameInput.value.split(" ");
+        nameInput.value = words.map(w => {
+            if (!w) return "";
+            return w.charAt(0).toLocaleUpperCase('tr-TR') + w.slice(1).toLocaleLowerCase('tr-TR');
+        }).join(" ");
+    });
+
+    // 2. Kart Numarası: 4 hanede bir boşluk, sadece 16 rakam
+    numInput.addEventListener("input", (e) => {
+        clearError();
+        let val = e.target.value.replace(/\D/g, ""); // sadece rakam
+        if (val.length > 16) val = val.substring(0, 16);
+        const parts = val.match(/.{1,4}/g);
+        numInput.value = parts ? parts.join(" ") : "";
+    });
+
+    // 3. Ay/Yıl: Ay 01-12, otomatik '/', Yıl 27-50
+    expInput.addEventListener("input", (e) => {
+        clearError();
+        let val = e.target.value.replace(/\D/g, ""); // sadece rakam
+        if (val.length > 4) val = val.substring(0, 4);
+
+        if (val.length >= 2) {
+            let month = parseInt(val.substring(0, 2), 10);
+            if (month < 1) month = "01";
+            else if (month > 12) month = "12";
+            else month = val.substring(0, 2);
+
+            let year = val.substring(2);
+            expInput.value = month + "/" + year;
+        } else {
+            expInput.value = val;
+        }
+    });
+
+    // 4. CVV: Sadece rakam ve max 3 hane
+    cvvInput.addEventListener("input", (e) => {
+        clearError();
+        cvvInput.value = e.target.value.replace(/\D/g, "").substring(0, 3);
+    });
+
+    // Gönderme Öncesi Doğrulama (Validation)
+    form.addEventListener("submit", (e) => {
+        // İptal butonuna basıldıysa doğrulamayı atla
+        if (e.submitter && e.submitter.value === "cancel") return;
+
+        const rawNumber = numInput.value.replace(/\s/g, "");
+        if (rawNumber.length !== 16) {
+            e.preventDefault();
+            showError("Kart numarası 16 haneli olmalıdır.");
+            numInput.focus();
+            return;
+        }
+
+        const expParts = expInput.value.split("/");
+        if (expParts.length !== 2 || expParts[0].length !== 2 || expParts[1].length !== 2) {
+            e.preventDefault();
+            showError("Son kullanma tarihi AA/YY biçiminde tam girilmelidir.");
+            expInput.focus();
+            return;
+        }
+
+        const month = parseInt(expParts[0], 10);
+        const year = parseInt(expParts[1], 10);
+
+        if (month < 1 || month > 12) {
+            e.preventDefault();
+            showError("Geçerli bir ay giriniz (01 - 12).");
+            expInput.focus();
+            return;
+        }
+
+        if (year < 27 || year > 50) {
+            e.preventDefault();
+            showError("Kart yılı 27 ile 50 arasında olmalıdır (Örn: 12/32).");
+            expInput.focus();
+            return;
+        }
+
+        if (cvvInput.value.length !== 3) {
+            e.preventDefault();
+            showError("CVV kodu tam 3 haneli olmalıdır.");
+            cvvInput.focus();
+            return;
+        }
+    });
+});
+</script>
+{% endblock %}

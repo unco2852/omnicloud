@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}OmniCloud | Sanal İş İstasyonu{% endblock %}</title>
+    
+    <!-- CSS Dosyaları & İkonlar -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+   <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    
+    <!-- Sayfalara Özel Ekstra CSS Bloğu -->
+    {% block styles %}{% endblock %}
+</head>
+<body>
+
+    <!-- ÜST ANA MENÜ (NAVBAR) -->
+    <header class="navbar-wrapper">
+        <nav class="navbar">
+            <!-- Sol: Logo -->
+            <a href="{{ url_for('index') }}" class="logo">
+                <i class="fa-solid fa-cloud-bolt"></i>
+                <span>OmniCloud</span>
+            </a>
+
+            <!-- Orta: Menü Linkleri -->
+            <ul class="nav-links-center">
+                <li><a href="{{ url_for('index') }}#ozellikler">Özellikler</a></li>
+                <li><a href="{{ url_for('plans') }}">Üyelikler</a></li>
+                <li><a href="{{ url_for('index') }}#hakkimizda">Hakkımızda</a></li>
+            </ul>
+
+            <!-- Sağ: Konsol Butonu + Giriş/Üye Ol ya da Profil -->
+            <div class="nav-actions">
+                <a href="{{ url_for('my_app') }}" class="btn-app-direct">
+                    <i class="fa-solid fa-desktop"></i> Konsola Git
+                </a>
+
+                {% if current_user.is_authenticated %}
+                    <div class="user-menu">
+                        <a href="{{ url_for('profile') }}" class="btn-profile">
+                            <i class="fa-regular fa-user"></i> {{ current_user.username }}
+                        </a>
+                        <a href="{{ url_for('logout') }}" class="btn-logout" title="Çıkış Yap">
+                            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="auth-group">
+                        <a href="{{ url_for('login') }}" class="btn-login">Giriş Yap</a>
+                        <a href="{{ url_for('plans') }}" class="btn-register-accent">Üye Ol</a>
+                    </div>
+                {% endif %}
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hata ve Başarı Bildirimleri (Flash Mesajları) -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-container">
+                {% for category, message in messages %}
+                    <div class="flash-toast flash-{{ category }}">
+                        <i class="fa-solid {% if category == 'danger' %}fa-circle-xmark{% else %}fa-circle-check{% endif %}"></i>
+                        <span>{{ message }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- ANA SAYFA İÇERİĞİ (Tüm Sayfaların Oturacağı Yer) -->
+    <main class="page-body">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Sayfa Altı (Footer) -->
+    <footer class="footer">
+        <p>&copy; 2026 OmniCloud. Tüm hakları saklıdır.</p>
+    </footer>
+
+    <!-- Sayfalara Özel JavaScript Kodlarının Geleceği Yer -->
+    {% block scripts %}{% endblock %}
+</body>
+</html>

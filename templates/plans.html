@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}Üyelik Paketleri | OmniCloud{% endblock %}
+
+{% block content %}
+<div class="plans-container" style="position: relative; z-index: 20; min-height: 80vh;">
+    <div class="plans-header">
+        <div class="hero-badge">
+            <i class="fa-solid fa-layer-group"></i> Esnek Sanallaştırma Katmanları
+        </div>
+        <h2>İhtiyacınıza Uygun Planı Seçin</h2>
+        <p>İş yükünüze göre yapılandırılmış vCPU ve izole bellek paketleriyle hemen başlayın.</p>
+    </div>
+
+    <div class="plans-grid">
+        <!-- Paket 1: Başlangıç (Ücretsiz) -->
+        <div class="plan-card">
+            <div class="plan-header">
+                <h3>Başlangıç</h3>
+                <p class="plan-desc">Temel keşif ve hafif iş yükleri için.</p>
+                <div class="plan-price">
+                    <span class="currency">₺</span>0<span class="period">/ay</span>
+                </div>
+            </div>
+
+            <ul class="plan-features">
+                <li><i class="fa-solid fa-check"></i> 2 vCPU Çekirdek</li>
+                <li><i class="fa-solid fa-check"></i> 4 GB RAM</li>
+                <li><i class="fa-solid fa-check"></i> 20 GB İzole NVMe Disk</li>
+                <li><i class="fa-solid fa-check"></i> Standart Ağ Hızı</li>
+                <li class="disabled"><i class="fa-solid fa-xmark"></i> Öncelikli Donanım Kuyruğu</li>
+            </ul>
+
+            {% if current_user.is_authenticated %}
+                {% if current_user.membership_plan == 'Başlangıç' %}
+                    <span class="btn-plan-select" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid #10b981; cursor: default;">
+                        <i class="fa-solid fa-check"></i> Mevcut Planınız
+                    </span>
+                {% else %}
+                    <a href="{{ url_for('my_app') }}" class="btn-plan-select">
+                        Başlangıç ile Devam Et
+                    </a>
+                {% endif %}
+            {% else %}
+                <a href="{{ url_for('register', plan='Başlangıç') }}" class="btn-plan-select">
+                    Başlangıç ile Üye Ol
+                </a>
+            {% endif %}
+        </div>
+
+        <!-- Paket 2: Ultimate (Ücretli) -->
+        <div class="plan-card featured">
+            <div class="popular-tag">EN POPÜLER</div>
+            <div class="plan-header">
+                <h3>Ultimate Tier</h3>
+                <p class="plan-desc">Senin mevcut sanal makinenin tam konfigürasyonu.</p>
+                <div class="plan-price">
+                    <span class="currency">₺</span>199<span class="period">/ay</span>
+                </div>
+            </div>
+
+            <ul class="plan-features">
+                <li><i class="fa-solid fa-check"></i> <strong>12 vCPU</strong> Yüksek Başarım</li>
+                <li><i class="fa-solid fa-check"></i> <strong>16 GB DDR5</strong> Bellek</li>
+                <li><i class="fa-solid fa-check"></i> <strong>80 GB</strong> Ultra Hızlı NVMe</li>
+                <li><i class="fa-solid fa-check"></i> &lt; 1 ms Yerel Düşük Gecikme</li>
+                <li><i class="fa-solid fa-check"></i> Tam Ekran Canlı Akış Desteği</li>
+            </ul>
+
+            {% if current_user.is_authenticated %}
+                {% if current_user.membership_plan == 'Ultimate' %}
+                    <span class="btn-plan-select btn-featured" style="background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid #10b981; cursor: default;">
+                        <i class="fa-solid fa-check"></i> Mevcut Planınız
+                    </span>
+                {% else %}
+                    <a href="{{ url_for('checkout', plan='Ultimate') }}" class="btn-plan-select btn-featured">
+                        Ultimate'e Yükselt (₺199)
+                    </a>
+                {% endif %}
+            {% else %}
+                <a href="{{ url_for('register', plan='Ultimate') }}" class="btn-plan-select btn-featured">
+                    Ultimate ile Üye Ol
+                </a>
+            {% endif %}
+        </div>
+
+        <!-- Paket 3: Kurumsal (Ücretli) -->
+        <div class="plan-card">
+            <div class="plan-header">
+                <h3>Kurumsal Lab</h3>
+                <p class="plan-desc">Yüksek hesaplama ve çoklu oturumlar için.</p>
+                <div class="plan-price">
+                    <span class="currency">₺</span>399<span class="period">/ay</span>
+                </div>
+            </div>
+
+            <ul class="plan-features">
+                <li><i class="fa-solid fa-check"></i> 16 vCPU Dedicated</li>
+                <li><i class="fa-solid fa-check"></i> 32 GB RAM</li>
+                <li><i class="fa-solid fa-check"></i> 256 GB İzole NVMe Disk</li>
+                <li><i class="fa-solid fa-check"></i> Otomatik Snapshot Yedekleme</li>
+                <li><i class="fa-solid fa-check"></i> 7/24 Teknik Destek</li>
+            </ul>
+
+            {% if current_user.is_authenticated %}
+                {% if current_user.membership_plan == 'Kurumsal' %}
+                    <span class="btn-plan-select" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid #10b981; cursor: default;">
+                        <i class="fa-solid fa-check"></i> Mevcut Planınız
+                    </span>
+                {% else %}
+                    <a href="{{ url_for('checkout', plan='Kurumsal') }}" class="btn-plan-select">
+                        Kurumsal'a Yükselt (₺399)
+                    </a>
+                {% endif %}
+            {% else %}
+                <a href="{{ url_for('register', plan='Kurumsal') }}" class="btn-plan-select">
+                    Kurumsal ile Üye Ol
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

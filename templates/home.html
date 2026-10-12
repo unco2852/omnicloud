@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block title %}OmniCloud | Yeni Nesil Bulut Masaüstü Deneyimi{% endblock %}
+
+{% block content %}
+<!-- Arka Plan Dinamik Partikül Ağı -->
+<canvas id="bgCanvas" class="bg-canvas"></canvas>
+
+<!-- Işıma / Glow Efektleri -->
+<div class="ambient-glow glow-top"></div>
+<div class="ambient-glow glow-bottom"></div>
+
+<!-- HERO BÖLÜMÜ -->
+<section class="cyber-hero">
+    <div class="hero-chip">
+        <span class="pulse-radar"></span>
+        <span>HTML5 &amp; WebRTC Düşük Gecikmeli Akış v2.4</span>
+    </div>
+
+    <h1 class="glitch-title">
+        DONANIMI BULUTA TAŞI, <br>
+        <span class="neon-gradient">CANLI WINDOWS 11</span>'İ YÖNET
+    </h1>
+
+    <p class="hero-lead">
+        Yerel sistem kaynaklarını tüketmeden; tarayıcı tabanlı izole diskler, 12 vCPU gücü ve milisaniyelik yanıt süresi ile her cihazda kesintisiz sanallaştırma.
+    </p>
+
+    <div class="hero-buttons">
+        <a href="{{ url_for('my_app') }}" class="btn-neon-glow">
+            <span class="btn-text"><i class="fa-solid fa-bolt"></i> Konsola Bağlan</span>
+            <div class="neon-reflection"></div>
+        </a>
+        <a href="{{ url_for('plans') }}" class="btn-glass-wire">
+            <i class="fa-solid fa-cube"></i> Paketleri İncele
+        </a>
+    </div>
+
+    <!-- Canlı İstatistik Göstergesi -->
+    <div class="stats-ticker">
+        <div class="stat-cell">
+            <h3 class="counter-num">12</h3>
+            <span>vCPU Tahsisi</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-cell">
+            <h3 class="counter-num">&lt; 1</h3>
+            <span>ms Ping (Yerel)</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-cell">
+            <h3 class="counter-num">80</h3>
+            <span>GB NVMe İzolasyon</span>
+        </div>
+    </div>
+</section>
+
+<!-- ÖZELLİKLER & 3D ETKİLİ KARTLAR -->
+<section id="ozellikler" class="cards-section">
+    <div class="section-title-wrap">
+        <span class="mini-tag">ÖZELLİKLER</span>
+        <h2>Sanallaştırmanın Geleceği</h2>
+    </div>
+
+    <div class="cyber-grid">
+        <div class="tilt-card" data-tilt>
+            <div class="card-border-glow"></div>
+            <div class="card-inner">
+                <div class="icon-circle icon-win">
+                    <i class="fa-brands fa-windows"></i>
+                </div>
+                <h3>Sıfır Eklenti, Tam Ekran</h3>
+                <p>İstemci tarafına üçüncü parti uygulama kurmadan standart web tarayıcısı üzerinden 60 FPS masaüstü kontrolü.</p>
+            </div>
+        </div>
+
+        <div class="tilt-card" data-tilt>
+            <div class="card-border-glow"></div>
+            <div class="card-inner">
+                <div class="icon-circle icon-shield">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <h3>Kalıcı &amp; İzole Veri Alanı</h3>
+                <p>Her oturuma özel izole dosya sistemi. Çalışmalarınız ana makineden tamamen ayrıştırılmış sandbox içinde saklanır.</p>
+            </div>
+        </div>
+
+        <div class="tilt-card" data-tilt>
+            <div class="card-border-glow"></div>
+            <div class="card-inner">
+                <div class="icon-circle icon-speed">
+                    <i class="fa-solid fa-gauge-high"></i>
+                </div>
+                <h3>Optimize Guacamole Tüneli</h3>
+                <p>Oracle VirtualBox headless mimarisi üzerine kurulu yüksek verimli ve düşük ağ tüketimli aktarım katmanı.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- HAKKIMIZDA & GÜVENLİK BLOKLARI -->
+<section id="hakkimizda" class="about-terminal-section">
+    <div class="terminal-box">
+        <div class="terminal-bar">
+            <div class="t-dots">
+                <span class="dot-red"></span>
+                <span class="dot-yellow"></span>
+                <span class="dot-green"></span>
+            </div>
+            <span class="terminal-title">omnicloud_architecture.sh</span>
+        </div>
+        <div class="terminal-body">
+            <p><span class="t-prompt">$</span> cat architecture_overview.txt</p>
+            <p class="t-output">
+                OmniCloud, sistem gücünü sunucuya yıkarak istemci donanımından bağımsız çalışma ortamı sunan kurumsal seviyede bir sanallaştırma projesidir. OWASP standartlarına uygun Argon2id şifreleme, dinamik CSRF denetimleri ve uçtan uca oturum koruması ile donatılmıştır.
+            </p>
+            <p><span class="t-prompt">$</span> check_vm_status --target omni</p>
+            <p class="t-success"><i class="fa-solid fa-check"></i> VirtualBox Headless Servisi: Hazır ve Yanıt Veriyor.</p>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    // 1. Partikül & Ağ Çizim Efekti (HTML5 Canvas)
+    const canvas = document.getElementById("bgCanvas");
+    if (canvas) {
+        const ctx = canvas.getContext("2d");
+        let width, height, particles;
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.vx = (Math.random() - 0.5) * 0.7;
+                this.vy = (Math.random() - 0.5) * 0.7;
+                this.radius = Math.random() * 2 + 1;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                if (this.x < 0 || this.x > width) this.vx *= -1;
+                if (this.y < 0 || this.y > height) this.vy *= -1;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = "rgba(99, 102, 241, 0.4)";
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            const count = Math.floor(width / 22);
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dist = Math.hypot(particles[i].x - particles[j].x, particles[i].y - particles[j].y);
+                    if (dist < 110) {
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        const opacity = 0.18 * (1 - dist / 110);
+                        ctx.strokeStyle = "rgba(99, 102, 241, " + opacity + ")";
+                        ctx.lineWidth = 0.8;
+                        ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+
+        window.addEventListener("resize", () => { resize(); initParticles(); });
+        resize();
+        initParticles();
+        animate();
+    }
+
+    // 2. 3D Tilt Kart Hareketi (Mouse Takibi)
+    document.querySelectorAll("[data-tilt]").forEach(card => {
+        card.addEventListener("mousemove", (e) => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left - rect.width / 2;
+            const y = e.clientY - rect.top - rect.height / 2;
+            card.style.transform = `perspective(800px) rotateX(${-y / 15}deg) rotateY(${x / 15}deg) translateY(-4px)`;
+        });
+
+        card.addEventListener("mouseleave", () => {
+            card.style.transform = `perspective(800px) rotateX(0deg) rotateY(0deg) translateY(0px)`;
+        });
+    });
+});
+</script>
+{% endblock %}

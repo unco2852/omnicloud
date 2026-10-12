@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+
+{% block title %}OmniCloud | Sanal İş İstasyonu{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <aside class="sidebar">
+        <!-- Logoya tıklandığında ana sayfaya gider -->
+        <a href="{{ url_for('index') }}" class="logo" style="text-decoration: none;">
+            <i class="fa-solid fa-cloud-bolt"></i>
+            <span>OmniCloud</span>
+        </a>
+        <nav class="nav-links">
+            <a href="{{ url_for('my_app') }}" class="active"><i class="fa-solid fa-desktop"></i> Masaüstüm</a>
+            <a href="#"><i class="fa-solid fa-hard-drive"></i> İzole Depolama</a>
+            <a href="#"><i class="fa-solid fa-chart-line"></i> Performans</a>
+            <a href="{{ url_for('profile') }}"><i class="fa-solid fa-gear"></i> Ayarlar</a>
+        </nav>
+        <div class="user-tier">
+            <div class="tier-badge">{{ current_user.membership_plan | upper if current_user.is_authenticated else 'ULTIMATE' }} TIER</div>
+            <p>Disk İzolasyonu: <strong>Aktif</strong></p>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="top-bar">
+            <div class="status-indicator">
+                <span class="status-dot" id="statusDot"></span>
+                <span id="statusText">Sunucu Hazır</span>
+            </div>
+            <!-- Kullanıcı adına/avatara tıklandığında profile gider -->
+            <div class="profile-info">
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('profile') }}" style="display: flex; align-items: center; gap: 0.75rem; text-decoration: none; color: inherit;">
+                        <span>{{ current_user.username }}</span>
+                        <div class="avatar"><i class="fa-regular fa-user"></i></div>
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" style="display: flex; align-items: center; gap: 0.75rem; text-decoration: none; color: inherit;">
+                        <span>Giriş Yap</span>
+                        <div class="avatar"><i class="fa-regular fa-user"></i></div>
+                    </a>
+                {% endif %}
+            </div>
+        </header>
+
+        <!-- Başlatma Kartı -->
+        <section class="hero-launchpad" id="heroLaunchpad">
+            <div class="vm-card">
+                <div class="vm-header">
+                    <h2>Omni Desktop 01</h2>
+                    <span class="os-badge"><i class="fa-brands fa-windows"></i> Windows 11 Pro</span>
+                </div>
+
+                <div class="specs-grid">
+                    <div class="spec-item">
+                        <span class="label">vCPU</span>
+                        <span class="value">12 Çekirdek</span>
+                    </div>
+                    <div class="spec-item">
+                        <span class="label">Bellek</span>
+                        <span class="value">16 GB DDR5</span>
+                    </div>
+                    <div class="spec-item">
+                        <span class="label">İzole Disk</span>
+                        <span class="value">80 GB NVMe</span>
+                    </div>
+                    <div class="spec-item">
+                        <span class="label">Gecikme</span>
+                        <span class="value" id="pingValue">&lt; 1 ms (Yerel)</span>
+                    </div>
+                </div>
+
+                <div class="action-zone">
+                    <button id="launchBtn" class="btn-launch">
+                        <i class="fa-solid fa-power-off"></i>
+                        <span>Masaüstünü Başlat</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Canlı Masaüstü Görüntüleme Alanı -->
+        <div id="desktopContainer" style="display: none; width: 100%; height: 82vh; border-radius: 14px; overflow: hidden; background: #000; border: 1px solid rgba(255, 255, 255, 0.1); margin-top: 15px;">
+            <div style="background: #1e293b; padding: 10px 18px; display: flex; justify-content: space-between; align-items: center; color: #fff; font-size: 14px;">
+                <span><i class="fa-brands fa-windows" style="color: #00a4ef; margin-right: 8px;"></i> OmniCloud Windows 11 Canlı Masaüstü</span>
+                <div>
+                    <button id="fullscreenBtn" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 5px 12px; border-radius: 6px; cursor: pointer; margin-right: 8px;">
+                        <i class="fa-solid fa-expand"></i> Tam Ekran
+                    </button>
+                    <button id="closeVmBtn" style="background: #ef4444; border: none; color: white; padding: 5px 12px; border-radius: 6px; cursor: pointer;">
+                        <i class="fa-solid fa-xmark"></i> Bağlantıyı Kes
+                    </button>
+                </div>
+            </div>
+            <iframe id="vmIframe" src="" style="width: 100%; height: calc(100% - 44px); border: none;"></iframe>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const GUACAMOLE_URL = "http://localhost:8081/guacamole/#/client/QmVuaW0gQmFnbGFudGltAGMAZGVmYXVsdA";
+
+    const launchBtn = document.getElementById("launchBtn");
+    const statusDot = document.getElementById("statusDot");
+    const statusText = document.getElementById("statusText");
+    const heroLaunchpad = document.getElementById("heroLaunchpad");
+    const desktopContainer = document.getElementById("desktopContainer");
+    const vmIframe = document.getElementById("vmIframe");
+    const fullscreenBtn = document.getElementById("fullscreenBtn");
+    const closeVmBtn = document.getElementById("closeVmBtn");
+
+    let isRunning = false;
+
+    function setUIState(running) {
+        isRunning = running;
+        const btnIcon = launchBtn ? launchBtn.querySelector("i") : null;
+        const btnText = launchBtn ? launchBtn.querySelector("span") : null;
+
+        if (running) {
+            if (btnIcon) btnIcon.className = "fa-solid fa-arrow-up-right-from-square";
+            if (btnText) btnText.textContent = "Masaüstüne Bağlan";
+            if (statusDot) statusDot.classList.add("online");
+            if (statusText) statusText.textContent = "Sanal Makine Çalışıyor";
+            if (launchBtn) launchBtn.disabled = false;
+        } else {
+            if (btnIcon) btnIcon.className = "fa-solid fa-power-off";
+            if (btnText) btnText.textContent = "Masaüstünü Başlat";
+            if (statusDot) statusDot.classList.remove("online");
+            if (statusText) statusText.textContent = "Sunucu Hazır";
+            if (launchBtn) launchBtn.disabled = false;
+        }
+    }
+
+    async function checkStatus() {
+        try {
+            const res = await fetch("/api/vm/status");
+            const data = await res.json();
+            setUIState(Boolean(data.running));
+        } catch (err) {
+            console.error("Durum sorgu hatası:", err);
+        }
+    }
+
+    if (launchBtn) {
+        launchBtn.addEventListener("click", async () => {
+            if (!isRunning) {
+                const btnIcon = launchBtn.querySelector("i");
+                const btnText = launchBtn.querySelector("span");
+                if (btnIcon) btnIcon.className = "fa-solid fa-spinner fa-spin";
+                if (btnText) btnText.textContent = "Başlatılıyor...";
+                launchBtn.disabled = true;
+
+                try {
+                    const res = await fetch("/api/vm/start", { method: "POST" });
+                    const data = await res.json();
+                    if (data.success) {
+                        setUIState(true);
+                    } else {
+                        alert("Başlatma hatası: " + (data.error || "Bilinmeyen hata"));
+                        setUIState(false);
+                    }
+                } catch (e) {
+                    alert("Sunucuya bağlanılamadı.");
+                    setUIState(false);
+                }
+            } else {
+                if (heroLaunchpad) heroLaunchpad.style.display = "none";
+                if (vmIframe) vmIframe.src = GUACAMOLE_URL;
+                if (desktopContainer) {
+                    desktopContainer.style.display = "block";
+                    desktopContainer.scrollIntoView({ behavior: "smooth" });
+                }
+            }
+        });
+    }
+
+    if (fullscreenBtn) {
+        fullscreenBtn.addEventListener("click", () => {
+            if (!document.fullscreenElement && desktopContainer) {
+                desktopContainer.requestFullscreen().catch(err => alert(err.message));
+            } else if (document.fullscreenElement) {
+                document.exitFullscreen().catch(() => {});
+            }
+        });
+    }
+
+    if (closeVmBtn) {
+        closeVmBtn.addEventListener("click", async () => {
+            if (document.fullscreenElement) {
+                try { await document.exitFullscreen(); } catch (e) {}
+            }
+
+            if (vmIframe) vmIframe.src = "";
+            if (desktopContainer) desktopContainer.style.display = "none";
+            if (heroLaunchpad) heroLaunchpad.style.display = "flex";
+
+            if (statusText) statusText.textContent = "Kapatılıyor...";
+            if (statusDot) statusDot.classList.remove("online");
+            if (launchBtn) {
+                launchBtn.disabled = true;
+                const btnText = launchBtn.querySelector("span");
+                if (btnText) btnText.textContent = "Kapatılıyor...";
+            }
+
+            try {
+                await fetch("/api/vm/stop", { method: "POST" });
+            } catch (err) {
+                console.error("VM kapatma isteği hatası:", err);
+            }
+
+            // VM'in kapanmasını teyit edene kadar kontrol et
+            let attempts = 0;
+            const stopInterval = setInterval(async () => {
+                attempts++;
+                try {
+                    const res = await fetch("/api/vm/status");
+                    const data = await res.json();
+                    if (!data.running || attempts > 5) {
+                        clearInterval(stopInterval);
+                        setUIState(false);
+                    }
+                } catch {
+                    clearInterval(stopInterval);
+                    setUIState(false);
+                }
+            }, 1500);
+        });
+    }
+
+    checkStatus();
+    setInterval(checkStatus, 7000);
+});
+</script>
+{% endblock %}
